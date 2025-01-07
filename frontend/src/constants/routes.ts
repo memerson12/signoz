@@ -8,6 +8,7 @@ const ROUTES = {
 	TRACE_DETAIL: '/trace/:id',
 	TRACES_EXPLORER: '/traces-explorer',
 	GET_STARTED: '/get-started',
+	ONBOARDING: '/onboarding',
 	GET_STARTED_APPLICATION_MONITORING: '/get-started/application-monitoring',
 	GET_STARTED_LOGS_MANAGEMENT: '/get-started/logs-management',
 	GET_STARTED_INFRASTRUCTURE_MONITORING:
@@ -54,10 +55,12 @@ const ROUTES = {
 	LOGS_SAVE_VIEWS: '/logs/saved-views',
 	TRACES_SAVE_VIEWS: '/traces/saved-views',
 	WORKSPACE_LOCKED: '/workspace-locked',
+	WORKSPACE_SUSPENDED: '/workspace-suspended',
 	SHORTCUTS: '/shortcuts',
 	INTEGRATIONS: '/integrations',
 	MESSAGING_QUEUES: '/messaging-queues',
 	MESSAGING_QUEUES_DETAIL: '/messaging-queues/detail',
+	INFRASTRUCTURE_MONITORING_HOSTS: '/infrastructure-monitoring/hosts',
 } as const;
 
 export default ROUTES;

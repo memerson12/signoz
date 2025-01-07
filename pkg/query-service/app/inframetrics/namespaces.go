@@ -23,10 +23,11 @@ var (
 	}
 
 	queryNamesForNamespaces = map[string][]string{
-		"cpu":    {"A"},
-		"memory": {"D"},
+		"cpu":       {"A"},
+		"memory":    {"D"},
+		"pod_phase": {"H", "I", "J", "K"},
 	}
-	namespaceQueryNames = []string{"A", "D"}
+	namespaceQueryNames = []string{"A", "D", "H", "I", "J", "K"}
 
 	attributesKeysForNamespaces = []v3.AttributeKey{
 		{Key: "k8s_namespace_name"},
@@ -178,7 +179,9 @@ func (p *NamespacesRepo) getTopNamespaceGroups(ctx context.Context, req model.Na
 		})
 	}
 
-	paginatedTopNamespaceGroupsSeries := formattedResponse[0].Series[req.Offset : req.Offset+req.Limit]
+	limit := math.Min(float64(req.Offset+req.Limit), float64(len(formattedResponse[0].Series)))
+
+	paginatedTopNamespaceGroupsSeries := formattedResponse[0].Series[req.Offset:int(limit)]
 
 	topNamespaceGroups := []map[string]string{}
 	for _, series := range paginatedTopNamespaceGroupsSeries {
@@ -303,6 +306,19 @@ func (p *NamespacesRepo) GetNamespaceList(ctx context.Context, req model.Namespa
 
 			if memory, ok := row.Data["D"].(float64); ok {
 				record.MemoryUsage = memory
+			}
+
+			if pending, ok := row.Data["H"].(float64); ok {
+				record.CountByPhase.Pending = int(pending)
+			}
+			if running, ok := row.Data["I"].(float64); ok {
+				record.CountByPhase.Running = int(running)
+			}
+			if succeeded, ok := row.Data["J"].(float64); ok {
+				record.CountByPhase.Succeeded = int(succeeded)
+			}
+			if failed, ok := row.Data["K"].(float64); ok {
+				record.CountByPhase.Failed = int(failed)
 			}
 
 			record.Meta = map[string]string{}

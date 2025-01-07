@@ -102,9 +102,9 @@ function RuleOptions({
 					<Select.Option value="4">{t('option_notequal')}</Select.Option>
 				</>
 			)}
-
+			{/* the value 5 and 6 are reserved for above or equal and below or equal */}
 			{ruleType === 'anomaly_rule' && (
-				<Select.Option value="5">{t('option_above_below')}</Select.Option>
+				<Select.Option value="7">{t('option_above_below')}</Select.Option>
 			)}
 		</InlineSelect>
 	);
@@ -386,32 +386,31 @@ function RuleOptions({
 					renderThresholdRuleOpts()}
 
 				<Space direction="vertical" size="large">
-					{queryCategory !== EQueryType.PROM &&
-						ruleType !== AlertDetectionTypes.ANOMALY_DETECTION_ALERT && (
-							<Space direction="horizontal" align="center">
-								<Form.Item noStyle name={['condition', 'target']}>
-									<InputNumber
-										addonBefore={t('field_threshold')}
-										value={alertDef?.condition?.target}
-										onChange={onChange}
-										type="number"
-										onWheel={(e): void => e.currentTarget.blur()}
-									/>
-								</Form.Item>
+					{ruleType !== AlertDetectionTypes.ANOMALY_DETECTION_ALERT && (
+						<Space direction="horizontal" align="center">
+							<Form.Item noStyle name={['condition', 'target']}>
+								<InputNumber
+									addonBefore={t('field_threshold')}
+									value={alertDef?.condition?.target}
+									onChange={onChange}
+									type="number"
+									onWheel={(e): void => e.currentTarget.blur()}
+								/>
+							</Form.Item>
 
-								<Form.Item noStyle>
-									<Select
-										getPopupContainer={popupContainer}
-										allowClear
-										showSearch
-										options={categorySelectOptions}
-										placeholder={t('field_unit')}
-										value={alertDef.condition.targetUnit}
-										onChange={onChangeAlertUnit}
-									/>
-								</Form.Item>
-							</Space>
-						)}
+							<Form.Item noStyle>
+								<Select
+									getPopupContainer={popupContainer}
+									allowClear
+									showSearch
+									options={categorySelectOptions}
+									placeholder={t('field_unit')}
+									value={alertDef.condition.targetUnit}
+									onChange={onChangeAlertUnit}
+								/>
+							</Form.Item>
+						</Space>
+					)}
 
 					<Collapse>
 						<Collapse.Panel header={t('More options')} key="1">

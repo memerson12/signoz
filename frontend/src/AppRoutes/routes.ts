@@ -15,6 +15,7 @@ import {
 	EditAlertChannelsAlerts,
 	EditRulesPage,
 	ErrorDetails,
+	InfrastructureMonitoring,
 	IngestionSettings,
 	InstalledIntegrations,
 	LicensePage,
@@ -32,6 +33,7 @@ import {
 	OldLogsExplorer,
 	Onboarding,
 	OrganizationSettings,
+	OrgOnboarding,
 	PasswordReset,
 	PipelinePage,
 	ServiceMapPage,
@@ -51,6 +53,7 @@ import {
 	UnAuthorized,
 	UsageExplorerPage,
 	WorkspaceBlocked,
+	WorkspaceSuspended,
 } from './pageComponents';
 
 const routes: AppRoutes[] = [
@@ -67,6 +70,13 @@ const routes: AppRoutes[] = [
 		component: Onboarding,
 		isPrivate: true,
 		key: 'GET_STARTED',
+	},
+	{
+		path: ROUTES.ONBOARDING,
+		exact: false,
+		component: OrgOnboarding,
+		isPrivate: true,
+		key: 'ONBOARDING',
 	},
 	{
 		component: LogsIndexToFields,
@@ -356,6 +366,13 @@ const routes: AppRoutes[] = [
 		key: 'WORKSPACE_LOCKED',
 	},
 	{
+		path: ROUTES.WORKSPACE_SUSPENDED,
+		exact: true,
+		component: WorkspaceSuspended,
+		isPrivate: true,
+		key: 'WORKSPACE_SUSPENDED',
+	},
+	{
 		path: ROUTES.SHORTCUTS,
 		exact: true,
 		component: ShortcutsPage,
@@ -381,6 +398,13 @@ const routes: AppRoutes[] = [
 		exact: true,
 		component: MQDetailPage,
 		key: 'MESSAGING_QUEUES_DETAIL',
+		isPrivate: true,
+	},
+	{
+		path: ROUTES.INFRASTRUCTURE_MONITORING_HOSTS,
+		exact: true,
+		component: InfrastructureMonitoring,
+		key: 'INFRASTRUCTURE_MONITORING_HOSTS',
 		isPrivate: true,
 	},
 ];

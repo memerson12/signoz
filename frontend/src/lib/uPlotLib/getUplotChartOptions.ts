@@ -55,6 +55,8 @@ export interface GetUPlotChartOptions {
 	>;
 	customTooltipElement?: HTMLDivElement;
 	verticalLineTimestamp?: number;
+	tzDate?: (timestamp: number) => Date;
+	timezone?: string;
 }
 
 /** the function converts series A , series B , series C to
@@ -158,12 +160,15 @@ export const getUPlotChartOptions = ({
 	setHiddenGraph,
 	customTooltipElement,
 	verticalLineTimestamp,
+	tzDate,
+	timezone,
 }: GetUPlotChartOptions): uPlot.Options => {
 	const timeScaleProps = getXAxisScale(minTimeScale, maxTimeScale);
 
 	const stackBarChart = stackChart && isUndefined(hiddenGraph);
 
-	const isAnomalyRule = apiResponse?.data?.newResult?.data?.result[0].isAnomaly;
+	const isAnomalyRule =
+		apiResponse?.data?.newResult?.data?.result[0]?.isAnomaly || false;
 
 	const series = getStackedSeries(apiResponse?.data?.result || []);
 
@@ -195,6 +200,7 @@ export const getUPlotChartOptions = ({
 				fill: (): string => '#fff',
 			},
 		},
+		tzDate,
 		padding: [16, 16, 8, 8],
 		bands,
 		scales: {
@@ -221,6 +227,7 @@ export const getUPlotChartOptions = ({
 				stackBarChart,
 				isDarkMode,
 				customTooltipElement,
+				timezone,
 			}),
 			onClickPlugin({
 				onClick: onClickHandler,

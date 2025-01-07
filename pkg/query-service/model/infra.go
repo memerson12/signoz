@@ -1,6 +1,10 @@
 package model
 
-import v3 "go.signoz.io/signoz/pkg/query-service/model/v3"
+import (
+	"sort"
+
+	v3 "go.signoz.io/signoz/pkg/query-service/model/v3"
+)
 
 type (
 	ResponseType string
@@ -22,36 +26,50 @@ type HostListRequest struct {
 }
 
 type HostListRecord struct {
-	HostName         string            `json:"hostName"`
-	Active           bool              `json:"active"`
-	OS               string            `json:"os"`
-	CPU              float64           `json:"cpu"`
-	CPUTimeSeries    *v3.Series        `json:"cpuTimeSeries"`
-	Memory           float64           `json:"memory"`
-	MemoryTimeSeries *v3.Series        `json:"memoryTimeSeries"`
-	Wait             float64           `json:"wait"`
-	WaitTimeSeries   *v3.Series        `json:"waitTimeSeries"`
-	Load15           float64           `json:"load15"`
-	Load15TimeSeries *v3.Series        `json:"load15TimeSeries"`
-	Meta             map[string]string `json:"-"`
-}
-
-type HostListGroup struct {
-	GroupValues    []string `json:"groupValues"`
-	Active         int      `json:"active"`
-	Inactive       int      `json:"inactive"`
-	GroupCPUAvg    float64  `json:"groupCPUAvg"`
-	GroupMemoryAvg float64  `json:"groupMemoryAvg"`
-	GroupWaitAvg   float64  `json:"groupWaitAvg"`
-	GroupLoad15Avg float64  `json:"groupLoad15Avg"`
-	HostNames      []string `json:"hostNames"`
+	HostName string            `json:"hostName"`
+	Active   bool              `json:"active"`
+	OS       string            `json:"os"`
+	CPU      float64           `json:"cpu"`
+	Memory   float64           `json:"memory"`
+	Wait     float64           `json:"wait"`
+	Load15   float64           `json:"load15"`
+	Meta     map[string]string `json:"meta"`
 }
 
 type HostListResponse struct {
-	Type    string           `json:"type"`
-	Records []HostListRecord `json:"records"`
-	Groups  []HostListGroup  `json:"groups"`
-	Total   int              `json:"total"`
+	Type                     ResponseType     `json:"type"`
+	Records                  []HostListRecord `json:"records"`
+	Total                    int              `json:"total"`
+	SentAnyHostMetricsData   bool             `json:"sentAnyHostMetricsData"`
+	IsSendingK8SAgentMetrics bool             `json:"isSendingK8SAgentMetrics"`
+}
+
+func (r *HostListResponse) SortBy(orderBy *v3.OrderBy) {
+	switch orderBy.ColumnName {
+	case "cpu":
+		sort.Slice(r.Records, func(i, j int) bool {
+			return r.Records[i].CPU > r.Records[j].CPU
+		})
+	case "memory":
+		sort.Slice(r.Records, func(i, j int) bool {
+			return r.Records[i].Memory > r.Records[j].Memory
+		})
+	case "load15":
+		sort.Slice(r.Records, func(i, j int) bool {
+			return r.Records[i].Load15 > r.Records[j].Load15
+		})
+	case "wait":
+		sort.Slice(r.Records, func(i, j int) bool {
+			return r.Records[i].Wait > r.Records[j].Wait
+		})
+	}
+	// the default is descending
+	if orderBy.Order == v3.DirectionAsc {
+		// reverse the list
+		for i, j := 0, len(r.Records)-1; i < j; i, j = i+1, j-1 {
+			r.Records[i], r.Records[j] = r.Records[j], r.Records[i]
+		}
+	}
 }
 
 type ProcessListRequest struct {
@@ -65,29 +83,19 @@ type ProcessListRequest struct {
 }
 
 type ProcessListResponse struct {
-	Type    string              `json:"type"`
+	Type    ResponseType        `json:"type"`
 	Records []ProcessListRecord `json:"records"`
-	Groups  []ProcessListGroup  `json:"groups"`
 	Total   int                 `json:"total"`
 }
 
 type ProcessListRecord struct {
-	ProcessName             string            `json:"processName"`
-	ProcessID               string            `json:"processID"`
-	ProcessCMD              string            `json:"processCMD"`
-	ProcessCMDLine          string            `json:"processCMDLine"`
-	ProcessCPU              float64           `json:"processCPU"`
-	ProcessCPUTimeSeries    *v3.Series        `json:"processCPUTimeSeries"`
-	ProcessMemory           float64           `json:"processMemory"`
-	ProcessMemoryTimeSeries *v3.Series        `json:"processMemoryTimeSeries"`
-	Meta                    map[string]string `json:"-"`
-}
-
-type ProcessListGroup struct {
-	GroupValues    []string `json:"groupValues"`
-	GroupCPUAvg    float64  `json:"groupCPUAvg"`
-	GroupMemoryAvg float64  `json:"groupMemoryAvg"`
-	ProcessNames   []string `json:"processNames"`
+	ProcessName    string            `json:"processName"`
+	ProcessID      string            `json:"processID"`
+	ProcessCMD     string            `json:"processCMD"`
+	ProcessCMDLine string            `json:"processCMDLine"`
+	ProcessCPU     float64           `json:"processCPU"`
+	ProcessMemory  float64           `json:"processMemory"`
+	Meta           map[string]string `json:"meta"`
 }
 
 type PodListRequest struct {
@@ -143,13 +151,20 @@ type NodeListResponse struct {
 	Total   int              `json:"total"`
 }
 
+type NodeCountByCondition struct {
+	Ready    int `json:"ready"`
+	NotReady int `json:"notReady"`
+	Unknown  int `json:"unknown"`
+}
+
 type NodeListRecord struct {
-	NodeUID               string            `json:"nodeUID,omitempty"`
-	NodeCPUUsage          float64           `json:"nodeCPUUsage"`
-	NodeCPUAllocatable    float64           `json:"nodeCPUAllocatable"`
-	NodeMemoryUsage       float64           `json:"nodeMemoryUsage"`
-	NodeMemoryAllocatable float64           `json:"nodeMemoryAllocatable"`
-	Meta                  map[string]string `json:"meta"`
+	NodeUID               string               `json:"nodeUID,omitempty"`
+	NodeCPUUsage          float64              `json:"nodeCPUUsage"`
+	NodeCPUAllocatable    float64              `json:"nodeCPUAllocatable"`
+	NodeMemoryUsage       float64              `json:"nodeMemoryUsage"`
+	NodeMemoryAllocatable float64              `json:"nodeMemoryAllocatable"`
+	CountByCondition      NodeCountByCondition `json:"countByCondition"`
+	Meta                  map[string]string    `json:"meta"`
 }
 
 type NamespaceListRequest struct {
@@ -172,6 +187,7 @@ type NamespaceListRecord struct {
 	NamespaceName string            `json:"namespaceName"`
 	CPUUsage      float64           `json:"cpuUsage"`
 	MemoryUsage   float64           `json:"memoryUsage"`
+	CountByPhase  PodCountByPhase   `json:"countByPhase"`
 	Meta          map[string]string `json:"meta"`
 }
 
@@ -198,4 +214,153 @@ type ClusterListRecord struct {
 	MemoryUsage       float64           `json:"memoryUsage"`
 	MemoryAllocatable float64           `json:"memoryAllocatable"`
 	Meta              map[string]string `json:"meta"`
+}
+
+type DeploymentListRequest struct {
+	Start   int64             `json:"start"` // epoch time in ms
+	End     int64             `json:"end"`   // epoch time in ms
+	Filters *v3.FilterSet     `json:"filters"`
+	GroupBy []v3.AttributeKey `json:"groupBy"`
+	OrderBy *v3.OrderBy       `json:"orderBy"`
+	Offset  int               `json:"offset"`
+	Limit   int               `json:"limit"`
+}
+
+type DeploymentListResponse struct {
+	Type    ResponseType           `json:"type"`
+	Records []DeploymentListRecord `json:"records"`
+	Total   int                    `json:"total"`
+}
+
+type DeploymentListRecord struct {
+	DeploymentName string            `json:"deploymentName"`
+	CPUUsage       float64           `json:"cpuUsage"`
+	MemoryUsage    float64           `json:"memoryUsage"`
+	DesiredPods    int               `json:"desiredPods"`
+	AvailablePods  int               `json:"availablePods"`
+	CPURequest     float64           `json:"cpuRequest"`
+	MemoryRequest  float64           `json:"memoryRequest"`
+	CPULimit       float64           `json:"cpuLimit"`
+	MemoryLimit    float64           `json:"memoryLimit"`
+	Restarts       int               `json:"restarts"`
+	Meta           map[string]string `json:"meta"`
+}
+
+type DaemonSetListRequest struct {
+	Start   int64             `json:"start"` // epoch time in ms
+	End     int64             `json:"end"`   // epoch time in ms
+	Filters *v3.FilterSet     `json:"filters"`
+	GroupBy []v3.AttributeKey `json:"groupBy"`
+	OrderBy *v3.OrderBy       `json:"orderBy"`
+	Offset  int               `json:"offset"`
+	Limit   int               `json:"limit"`
+}
+
+type DaemonSetListResponse struct {
+	Type    ResponseType          `json:"type"`
+	Records []DaemonSetListRecord `json:"records"`
+	Total   int                   `json:"total"`
+}
+
+type DaemonSetListRecord struct {
+	DaemonSetName  string            `json:"daemonSetName"`
+	CPUUsage       float64           `json:"cpuUsage"`
+	MemoryUsage    float64           `json:"memoryUsage"`
+	CPURequest     float64           `json:"cpuRequest"`
+	MemoryRequest  float64           `json:"memoryRequest"`
+	CPULimit       float64           `json:"cpuLimit"`
+	MemoryLimit    float64           `json:"memoryLimit"`
+	Restarts       int               `json:"restarts"`
+	DesiredNodes   int               `json:"desiredNodes"`
+	AvailableNodes int               `json:"availableNodes"`
+	Meta           map[string]string `json:"meta"`
+}
+
+type StatefulSetListRequest struct {
+	Start   int64             `json:"start"` // epoch time in ms
+	End     int64             `json:"end"`   // epoch time in ms
+	Filters *v3.FilterSet     `json:"filters"`
+	GroupBy []v3.AttributeKey `json:"groupBy"`
+	OrderBy *v3.OrderBy       `json:"orderBy"`
+	Offset  int               `json:"offset"`
+	Limit   int               `json:"limit"`
+}
+
+type StatefulSetListResponse struct {
+	Type    ResponseType            `json:"type"`
+	Records []StatefulSetListRecord `json:"records"`
+	Total   int                     `json:"total"`
+}
+
+type StatefulSetListRecord struct {
+	StatefulSetName string            `json:"statefulSetName"`
+	CPUUsage        float64           `json:"cpuUsage"`
+	MemoryUsage     float64           `json:"memoryUsage"`
+	CPURequest      float64           `json:"cpuRequest"`
+	MemoryRequest   float64           `json:"memoryRequest"`
+	CPULimit        float64           `json:"cpuLimit"`
+	MemoryLimit     float64           `json:"memoryLimit"`
+	Restarts        int               `json:"restarts"`
+	DesiredPods     int               `json:"desiredPods"`
+	AvailablePods   int               `json:"availablePods"`
+	Meta            map[string]string `json:"meta"`
+}
+
+type JobListRequest struct {
+	Start   int64             `json:"start"` // epoch time in ms
+	End     int64             `json:"end"`   // epoch time in ms
+	Filters *v3.FilterSet     `json:"filters"`
+	GroupBy []v3.AttributeKey `json:"groupBy"`
+	OrderBy *v3.OrderBy       `json:"orderBy"`
+	Offset  int               `json:"offset"`
+	Limit   int               `json:"limit"`
+}
+
+type JobListResponse struct {
+	Type    ResponseType    `json:"type"`
+	Records []JobListRecord `json:"records"`
+	Total   int             `json:"total"`
+}
+
+type JobListRecord struct {
+	JobName               string            `json:"jobName"`
+	CPUUsage              float64           `json:"cpuUsage"`
+	MemoryUsage           float64           `json:"memoryUsage"`
+	CPURequest            float64           `json:"cpuRequest"`
+	MemoryRequest         float64           `json:"memoryRequest"`
+	CPULimit              float64           `json:"cpuLimit"`
+	MemoryLimit           float64           `json:"memoryLimit"`
+	Restarts              int               `json:"restarts"`
+	DesiredSuccessfulPods int               `json:"desiredSuccessfulPods"`
+	ActivePods            int               `json:"activePods"`
+	FailedPods            int               `json:"failedPods"`
+	SuccessfulPods        int               `json:"successfulPods"`
+	Meta                  map[string]string `json:"meta"`
+}
+
+type VolumeListRequest struct {
+	Start   int64             `json:"start"` // epoch time in ms
+	End     int64             `json:"end"`   // epoch time in ms
+	Filters *v3.FilterSet     `json:"filters"`
+	GroupBy []v3.AttributeKey `json:"groupBy"`
+	OrderBy *v3.OrderBy       `json:"orderBy"`
+	Offset  int               `json:"offset"`
+	Limit   int               `json:"limit"`
+}
+
+type VolumeListResponse struct {
+	Type    ResponseType       `json:"type"`
+	Records []VolumeListRecord `json:"records"`
+	Total   int                `json:"total"`
+}
+
+type VolumeListRecord struct {
+	PersistentVolumeClaimName string            `json:"persistentVolumeClaimName"`
+	VolumeAvailable           float64           `json:"volumeAvailable"`
+	VolumeCapacity            float64           `json:"volumeCapacity"`
+	VolumeInodes              float64           `json:"volumeInodes"`
+	VolumeInodesFree          float64           `json:"volumeInodesFree"`
+	VolumeInodesUsed          float64           `json:"volumeInodesUsed"`
+	VolumeUsage               float64           `json:"volumeUsage"`
+	Meta                      map[string]string `json:"meta"`
 }

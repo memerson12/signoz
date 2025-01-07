@@ -53,6 +53,10 @@ func getParamsForTopHosts(req model.HostListRequest) (int64, string, string) {
 	return getParamsForTopItems(req.Start, req.End)
 }
 
+func getParamsForTopProcesses(req model.ProcessListRequest) (int64, string, string) {
+	return getParamsForTopItems(req.Start, req.End)
+}
+
 func getParamsForTopPods(req model.PodListRequest) (int64, string, string) {
 	return getParamsForTopItems(req.Start, req.End)
 }
@@ -66,6 +70,26 @@ func getParamsForTopNamespaces(req model.NamespaceListRequest) (int64, string, s
 }
 
 func getParamsForTopClusters(req model.ClusterListRequest) (int64, string, string) {
+	return getParamsForTopItems(req.Start, req.End)
+}
+
+func getParamsForTopDeployments(req model.DeploymentListRequest) (int64, string, string) {
+	return getParamsForTopItems(req.Start, req.End)
+}
+
+func getParamsForTopDaemonSets(req model.DaemonSetListRequest) (int64, string, string) {
+	return getParamsForTopItems(req.Start, req.End)
+}
+
+func getParamsForTopStatefulSets(req model.StatefulSetListRequest) (int64, string, string) {
+	return getParamsForTopItems(req.Start, req.End)
+}
+
+func getParamsForTopJobs(req model.JobListRequest) (int64, string, string) {
+	return getParamsForTopItems(req.Start, req.End)
+}
+
+func getParamsForTopVolumes(req model.VolumeListRequest) (int64, string, string) {
 	return getParamsForTopItems(req.Start, req.End)
 }
 
